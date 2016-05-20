@@ -1,9 +1,11 @@
-package com.fasterxml.jackson.dataformat.smile;
+package com.fasterxml.jackson.util.tool.smile;
 
 import java.io.*;
 
 import com.fasterxml.jackson.core.*;
 import com.fasterxml.jackson.dataformat.smile.SmileFactory;
+import com.fasterxml.jackson.dataformat.smile.SmileGenerator;
+import com.fasterxml.jackson.dataformat.smile.SmileParser;
 
 /**
  * Simple command-line utility that can be used to encode JSON as Smile, or
@@ -12,10 +14,10 @@ import com.fasterxml.jackson.dataformat.smile.SmileFactory;
  */
 public class Tool
 {
-    public final JsonFactory jsonFactory;
-    public final SmileFactory smileFactory;
+    protected final JsonFactory jsonFactory;
+    protected final SmileFactory smileFactory;
     
-    public Tool()
+    protected Tool()
     {
         jsonFactory = new JsonFactory();
         smileFactory = new SmileFactory();
@@ -72,65 +74,65 @@ public class Tool
     
     private void decode(InputStream in) throws IOException
     {
-        JsonParser jp = smileFactory.createParser(in);
-        JsonGenerator jg = jsonFactory.createGenerator(System.out, JsonEncoding.UTF8);
+        JsonParser p = smileFactory.createParser(in);
+        JsonGenerator g = jsonFactory.createGenerator(System.out, JsonEncoding.UTF8);
 
         while (true) {
             /* Just one trick: since Smile can have segments (multiple 'documents' in output
              * stream), we should not stop at first end marker, only bail out if two are seen
              */
-            if (jp.nextToken() == null) {
-                if (jp.nextToken() == null) {
+            if (p.nextToken() == null) {
+                if (p.nextToken() == null) {
                     break;
                 }
             }
-            jg.copyCurrentEvent(jp);
+            g.copyCurrentEvent(p);
         }
-        jp.close();
-        jg.close();
+        p.close();
+        g.close();
     }        
 
     private void encode(InputStream in) throws IOException
     {
-        JsonParser jp = jsonFactory.createParser(in);
-        JsonGenerator jg = smileFactory.createGenerator(System.out, JsonEncoding.UTF8);
-        while ((jp.nextToken()) != null) {
-            jg.copyCurrentEvent(jp);
+        JsonParser p = jsonFactory.createParser(in);
+        JsonGenerator g = smileFactory.createGenerator(System.out, JsonEncoding.UTF8);
+        while ((p.nextToken()) != null) {
+            g.copyCurrentEvent(p);
         }
-        jp.close();
-        jg.close();
+        p.close();
+        g.close();
     }
 
     @SuppressWarnings("resource")
     private void verify(InputStream in, InputStream in2) throws IOException
     {
-        JsonParser jp = jsonFactory.createParser(in);
+        JsonParser p = jsonFactory.createParser(in);
         ByteArrayOutputStream bytes = new ByteArrayOutputStream(4000);
-        JsonGenerator jg = smileFactory.createGenerator(bytes, JsonEncoding.UTF8);
+        JsonGenerator g = smileFactory.createGenerator(bytes, JsonEncoding.UTF8);
 
         // First, read, encode in memory buffer
-        while ((jp.nextToken()) != null) {
-            jg.copyCurrentEvent(jp);
+        while ((p.nextToken()) != null) {
+            g.copyCurrentEvent(p);
         }
-        jp.close();
-        jg.close();
+        p.close();
+        g.close();
 
         // and then re-read both, verify
-        jp = jsonFactory.createParser(in2);
+        p = jsonFactory.createParser(in2);
         byte[] smile = bytes.toByteArray();
-        JsonParser jp2 = smileFactory.createParser(smile);
+        JsonParser p2 = smileFactory.createParser(smile);
 
         JsonToken t;
         int count = 0;
-        while ((t = jp.nextToken()) != null) {
-            JsonToken t2 = jp2.nextToken();
+        while ((t = p.nextToken()) != null) {
+            JsonToken t2 = p2.nextToken();
             ++count;
             if (t != t2) {
                 throw new IOException("Input and encoded differ, token #"+count+"; expected "+t+", got "+t2);
             }
             // also, need to have same texts...
-            String text1 = jp.getText();
-            String text2 = jp2.getText();
+            String text1 = p.getText();
+            String text2 = p2.getText();
             if (!text1.equals(text2)) {
                 throw new IOException("Input and encoded differ, token #"+count+"; expected text '"+text1+"', got '"+text2+"'");
             }
