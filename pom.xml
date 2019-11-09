@@ -4,7 +4,7 @@
   <parent>
     <groupId>com.fasterxml.jackson</groupId>
     <artifactId>jackson-parent</artifactId>
-    <version>2.8-rc1-SNAPSHOT</version>
+    <version>2.8</version>
   </parent>
   <groupId>com.fasterxml.jackson.util</groupId>
   <artifactId>jackson-tools</artifactId>
@@ -26,7 +26,7 @@
   </scm>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding> 
-    <version.jackson.core>2.8.0-SNAPSHOT</version.jackson.core>
+    <version.jackson.core>2.8.11</version.jackson.core>
     <version.jackson.dataformat>${version.jackson.core}</version.jackson.dataformat>
   </properties>
 
